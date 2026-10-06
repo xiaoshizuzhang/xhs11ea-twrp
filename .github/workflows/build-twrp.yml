@@ -36,17 +36,13 @@ jobs:
           cp -r $GITHUB_WORKSPACE/device/ceres/xhs11ea $HOME/twrp/device/ceres/
           ls -la $HOME/twrp/device/ceres/xhs11ea/
 
-      - name: Setup musl arm toolchain
-        run: |
-          curl -sL https://musl.cc/arm-linux-musleabihf-cross.tgz -o /tmp/musl.tgz
-          tar -xzf /tmp/musl.tgz -C /opt
-          /opt/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc --version | head -1
-
-      - name: Build sn_tool (strip-debug, keep symbols)
+      - name: Build sn_tool (source-tree gcc, strip-debug)
         run: |
           cd $HOME/twrp/device/ceres/xhs11ea
-          /opt/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-gcc -O2 -static -o sn_tool sn_tool.c
-          /opt/arm-linux-musleabihf-cross/bin/arm-linux-musleabihf-strip --strip-debug sn_tool
+          TOOLCHAIN=$HOME/twrp/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
+          ls -la $TOOLCHAIN/bin/ | head -10
+          $TOOLCHAIN/bin/arm-linux-androideabi-gcc -O2 -static -o sn_tool sn_tool.c
+          $TOOLCHAIN/bin/arm-linux-androideabi-strip --strip-debug sn_tool
           ls -la sn_tool
           file sn_tool
 
