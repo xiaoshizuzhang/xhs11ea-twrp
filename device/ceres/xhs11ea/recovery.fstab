@@ -1,0 +1,16 @@
+# Seewo XHS11-EA (Allwinner A133 / sun50iw10p1) - TWRP fstab
+# 布局依据官方 partition.xml / MBR（19 分区）
+# data=UDISK f2fs：走"vendor 去 FBE 明文"路线，fstab 不带 fileencryption
+# system/vendor/product 在 super 动态分区（/dev/block/mapper/*）
+
+/boot            emmc    /dev/block/by-name/boot
+/cache           ext4    /dev/block/by-name/cache
+/data            f2fs    /dev/block/by-name/UDISK         flags=display="Data";fsckflags=recoveryonly;has_legacy_property
+/misc            emmc    /dev/block/by-name/misc
+/recovery        emmc    /dev/block/by-name/recovery
+/metadata        ext4    /dev/block/by-name/metadata
+/super           emmc    /dev/block/by-name/super
+/system          ext4    /dev/block/mapper/system
+/vendor          ext4    /dev/block/mapper/vendor
+/product         ext4    /dev/block/mapper/product
+/external_sd     auto    /dev/block/mmcblk1p1             flags=display="External SDcard";storage;wipeingui;removable
