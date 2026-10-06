@@ -1,0 +1,8 @@
+// Declare the android.hardware HIDL package root so that interface modules
+// under hardware/interfaces resolve their package root during Soong analysis.
+// Recovery never instantiates these interfaces; the declaration is only needed
+// for the dependency graph to build.
+hidl_package_root {
+    name: "android.hardware",
+    path: "hardware/interfaces",
+}
