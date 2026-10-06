@@ -1,10 +1,10 @@
 // Stub defaults for VTS modules present in hardware/interfaces tree.
 // Recovery build never compiles VTS targets; these empty defaults satisfy
-// Soong's dependency graph analysis only.
-soong_defaults {
+// Soong's dependency graph analysis only. (Android 10 uses `defaults` type.)
+defaults {
     name: "VtsHalDriverDefaults",
 }
 
-soong_defaults {
+defaults {
     name: "VtsHalProfilerDefaults",
 }
