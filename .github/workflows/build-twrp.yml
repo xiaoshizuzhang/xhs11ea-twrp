@@ -36,15 +36,10 @@ jobs:
           cp -r $GITHUB_WORKSPACE/device/ceres/xhs11ea $HOME/twrp/device/ceres/
           ls -la $HOME/twrp/device/ceres/xhs11ea/
 
-      - name: Build sn_tool (source-tree gcc, strip-debug)
+      - name: Verify sn_tool prebuilt
         run: |
-          cd $HOME/twrp/device/ceres/xhs11ea
-          TOOLCHAIN=$HOME/twrp/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-4.9
-          ls -la $TOOLCHAIN/bin/ | head -10
-          $TOOLCHAIN/bin/arm-linux-androideabi-gcc -O2 -static -o sn_tool sn_tool.c
-          $TOOLCHAIN/bin/arm-linux-androideabi-strip --strip-debug sn_tool
-          ls -la sn_tool
-          file sn_tool
+          ls -la $HOME/twrp/device/ceres/xhs11ea/sn_tool
+          file $HOME/twrp/device/ceres/xhs11ea/sn_tool
 
       - name: Build recovery image
         run: |
