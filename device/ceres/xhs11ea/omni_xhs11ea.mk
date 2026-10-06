@@ -23,4 +23,5 @@ PRODUCT_PACKAGES += \
     fsck.f2fs
 
 PRODUCT_COPY_FILES += \
-    device/ceres/xhs11ea/recovery.fstab:recovery/root/etc/recovery.fstab
+    device/ceres/xhs11ea/recovery.fstab:recovery/root/etc/recovery.fstab \
+    device/ceres/xhs11ea/sn_tool:recovery/root/sbin/sn_tool
