@@ -43,11 +43,18 @@ jobs:
 
       - name: Build recovery image
         run: |
+          set +e
           cd $HOME/twrp
-          source build/envsetup.sh
-          lunch omni_xhs11ea-eng
+          source build/envsetup.sh > $HOME/env.log 2>&1
+          echo "envsetup rc=$?"
+          tail -20 $HOME/env.log
+          lunch omni_xhs11ea-eng > $HOME/lunch.log 2>&1
+          echo "lunch rc=$?"
+          tail -40 $HOME/lunch.log
           mka recoveryimage 2>&1 | tee $HOME/build.log
+          echo "mka rc=${PIPESTATUS[0]}"
           ls -la out/target/product/xhs11ea/recovery.img
+          if [ ! -f out/target/product/xhs11ea/recovery.img ]; then exit 1; fi
 
       - name: Upload recovery.img
         if: always()
