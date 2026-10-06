@@ -28,14 +28,6 @@ jobs:
           mkdir -p $HOME/twrp
           cd $HOME/twrp
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-10.0-deprecated
-          cd $HOME/twrp/.repo/manifests
-          git config user.name "ci-builder"
-          git config user.email "ci@localhost"
-          git checkout -b local
-          sed -i '/name="platform\/hardware\/interfaces"/d; /name="platform\/frameworks\/hardware\/interfaces"/d; /name="platform\/system\/hardware\/interfaces"/d' default.xml
-          git add -A
-          git commit -m "drop hw interfaces (vts soong errors)"
-          cd $HOME/twrp
           repo sync -c -j8 --no-tags --no-clone-bundle
 
       - name: Inject device tree
