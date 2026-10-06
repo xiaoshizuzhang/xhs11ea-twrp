@@ -28,14 +28,12 @@ jobs:
           mkdir -p $HOME/twrp
           cd $HOME/twrp
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-10.0-deprecated
-          mkdir -p .repo/local_manifests
-          cat > .repo/local_manifests/remove_hw_interfaces.xml <<'EOF'
-          <?xml version="1.0" encoding="UTF-8"?>
-          <manifest>
-            <remove-project name="platform/hardware/interfaces" />
-            <remove-project name="platform/frameworks/hardware/interfaces" />
-          </manifest>
-          EOF
+          cd $HOME/twrp/.repo/manifests
+          git checkout -b local
+          sed -i '/name="platform\/hardware\/interfaces"/d; /name="platform\/frameworks\/hardware\/interfaces"/d; /name="platform\/system\/hardware\/interfaces"/d' default.xml
+          git add -A
+          git commit -m "drop hw interfaces (vts soong errors)"
+          cd $HOME/twrp
           repo sync -c -j8 --no-tags --no-clone-bundle
 
       - name: Inject device tree
