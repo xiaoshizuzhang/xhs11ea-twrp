@@ -28,6 +28,33 @@ jobs:
           mkdir -p $HOME/twrp
           cd $HOME/twrp
           repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-10.0-deprecated
+          cd $HOME/twrp/.repo/manifests
+          git config user.name "ci-builder"
+          git config user.email "ci@localhost"
+          python3 - <<'EOF'
+          p = "default.xml"
+          s = open(p, encoding="utf-8").read()
+          targets = ["platform/hardware/interfaces",
+                     "platform/frameworks/hardware/interfaces",
+                     "platform/system/hardware/interfaces"]
+          out = []
+          removed = 0
+          for ln in s.splitlines():
+              skip = False
+              if ("<project" in ln or "<remove-project" in ln):
+                  for t in targets:
+                      if t in ln:
+                          skip = True
+                          removed += 1
+                          break
+              if not skip:
+                  out.append(ln)
+          open(p, "w", encoding="utf-8").write("\n".join(out) + "\n")
+          print("manifest lines removed:", removed)
+          EOF
+          git add -A
+          git commit -m "drop hw interface repos (vts/hidl soong noise)"
+          cd $HOME/twrp
           repo sync -c -j8 --no-tags --no-clone-bundle
 
       - name: Inject device tree
