@@ -36,11 +36,11 @@ jobs:
           cp -r $GITHUB_WORKSPACE/device/ceres/xhs11ea $HOME/twrp/device/ceres/
           ls -la $HOME/twrp/device/ceres/xhs11ea/
 
-      - name: Strip VTS test modules (never built for recovery)
+      - name: Strip VTS/defaults test modules (never built for recovery)
         run: |
-          find $HOME/twrp/hardware/interfaces $HOME/twrp/frameworks/hardware/interfaces $HOME/twrp/system/hardware/interfaces -name "Android.bp" -exec grep -l "VtsHal" {} \; | xargs -r rm -f
-          echo "--- remaining VtsHal refs ---"
-          grep -r "VtsHal" $HOME/twrp/hardware/interfaces $HOME/twrp/frameworks/hardware/interfaces $HOME/twrp/system/hardware/interfaces 2>/dev/null | head -5
+          find $HOME/twrp -path $HOME/twrp/out -prune -o -path $HOME/twrp/.repo -prune -o -name "Android.bp" -exec grep -l -E "VtsHal|hidl_defaults" {} \; | xargs -r rm -f
+          echo "--- remaining refs ---"
+          grep -r -E "VtsHal|hidl_defaults" $HOME/twrp --include="Android.bp" -l 2>/dev/null | grep -v "^$HOME/twrp/out" | head -5
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
