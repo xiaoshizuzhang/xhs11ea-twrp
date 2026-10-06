@@ -38,9 +38,13 @@ jobs:
 
       - name: Strip VTS/defaults test modules (never built for recovery)
         run: |
-          find $HOME/twrp -path $HOME/twrp/out -prune -o -path $HOME/twrp/.repo -prune -o -name "Android.bp" -exec grep -l -E "VtsHal|hidl_defaults" {} \; | xargs -r rm -f
-          echo "--- remaining refs ---"
-          grep -r -E "VtsHal|hidl_defaults" $HOME/twrp --include="Android.bp" -l 2>/dev/null | grep -v "^$HOME/twrp/out" | head -5
+          echo "=== matching files before strip:"
+          grep -rl -E "VtsHal|hidl_defaults" $HOME/twrp --include="Android.bp" 2>/dev/null | grep -v -E "^$HOME/twrp/(out|\.repo)" | tee /tmp/strip_list.txt | wc -l
+          xargs -r rm -f < /tmp/strip_list.txt
+          echo "=== remaining after strip:"
+          grep -rl -E "VtsHal|hidl_defaults" $HOME/twrp --include="Android.bp" 2>/dev/null | grep -v -E "^$HOME/twrp/(out|\.repo)" | head -5
+          echo "=== sanity: known offenders still present?"
+          ls -la $HOME/twrp/hardware/interfaces/audio/5.0/Android.bp $HOME/twrp/system/libhidl/transport/memory/1.0/Android.bp 2>&1 | head -6
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
