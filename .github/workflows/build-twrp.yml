@@ -235,6 +235,18 @@ jobs:
           open(p, "w", encoding="utf-8").write(txt)
           print("SCRUBBED okhttp", n1, "apache-xml", n2)
           EOF
+          echo "=== removing round-6 consumers (EmergencyInfo -> SettingsLibDefaults) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra6 = ["packages/apps/EmergencyInfo"]
+          gone = 0
+          for e in extra6:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED6_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
