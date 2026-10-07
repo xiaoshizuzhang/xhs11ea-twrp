@@ -400,6 +400,20 @@ jobs:
                       open(p, "w", encoding="utf-8").write(txt)
           print("GLOBAL_SCRUBBED", total)
           EOF
+          echo "=== removing round-12 dirs (androidx-legacy prebuilt, ub-uiautomator) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra12 = [
+              "prebuilts/sdk/current/androidx-legacy", "prebuilts/misc/common/ub-uiautomator",
+          ]
+          gone = 0
+          for e in extra12:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED12_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
