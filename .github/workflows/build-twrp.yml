@@ -247,6 +247,21 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED6_TOTAL", gone)
           EOF
+          echo "=== removing round-7 consumers (media2-jni/processors/UniversalMediaPlayer) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra7 = [
+              "frameworks/base/media/jni", "frameworks/base/tools/processors",
+              "packages/apps/UniversalMediaPlayer",
+          ]
+          gone = 0
+          for e in extra7:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED7_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
