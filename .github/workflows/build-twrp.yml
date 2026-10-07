@@ -262,6 +262,37 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED7_TOTAL", gone)
           EOF
+          echo "=== removing round-8 consumers (signapk/zipalign/conscrypt/drm/Stk/metalava/atrace/installd/icu-tools/skqp) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra8 = [
+              "build/make/tools/signapk", "build/make/tools/zipalign", "external/conscrypt",
+              "frameworks/base/drm", "packages/apps/Stk", "tools/metalava",
+              "frameworks/native/cmds/atrace", "frameworks/native/cmds/installd",
+              "external/icu/tools", "external/skqp",
+          ]
+          gone = 0
+          for e in extra8:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED8_TOTAL", gone)
+          EOF
+          echo "=== scrubbing dead refs from frameworks/base/services/Android.bp ==="
+          python3 - <<'EOF'
+          import re
+          p = "/home/runner/twrp/frameworks/base/services/Android.bp"
+          txt = open(p, encoding="utf-8", errors="ignore").read()
+          pats = ["services.coverage", "android.hidl.manager-V1.0-java", "android.hidl.base-V1.0-java"]
+          total = 0
+          for pat in pats:
+              n = len(re.findall(re.escape(pat), txt))
+              txt = re.sub(re.escape(pat) + r',\s*', '', txt)
+              total += n
+          open(p, "w", encoding="utf-8").write(txt)
+          print("SERVICES_SCRUBBED", total)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
