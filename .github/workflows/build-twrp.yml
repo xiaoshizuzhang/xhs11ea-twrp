@@ -109,6 +109,9 @@ jobs:
           echo "=== removing hidl test + nxp vendor trees ==="
           rm -rf $HOME/twrp/system/tools/hidl/test $HOME/twrp/hardware/nxp
           ls -d $HOME/twrp/system/tools/hidl/test $HOME/twrp/hardware/nxp 2>&1 || echo "hidl-test/nxp GONE"
+          echo "=== removing external/bcc (bpf defaults not in minimal manifest) ==="
+          rm -rf $HOME/twrp/external/bcc
+          ls -d $HOME/twrp/external/bcc 2>&1 || echo "external/bcc GONE"
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
