@@ -112,6 +112,38 @@ jobs:
           echo "=== removing external/bcc (bpf defaults not in minimal manifest) ==="
           rm -rf $HOME/twrp/external/bcc
           ls -d $HOME/twrp/external/bcc 2>&1 || echo "external/bcc GONE"
+          echo "=== BIG PURGE: tests dirs + non-recovery trees (minimal manifest lacks prebuilt test libs) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          dels = []
+          for dirpath, dirnames, filenames in os.walk(root):
+              if "/out" in dirpath or "/.repo" in dirpath or "/.git" in dirpath:
+                  continue
+              if os.path.basename(dirpath) == "tests":
+                  dels.append(dirpath)
+                  dirnames[:] = []
+          extra = [
+              "cts", "frameworks/av", "art", "external/ukey2", "external/libbrillo",
+              "hardware/ti", "system/security/keystore-engine", "build/make/tools/apicheck",
+              "prebuilts/misc/common/androidx-test", "frameworks/opt/car",
+              "development/tools/bugreport", "system/core/libgrallocusage",
+              "frameworks/native/services/sensorservice", "frameworks/native/libs/ui/tests",
+              "frameworks/base/tests", "frameworks/base/core/tests",
+              "frameworks/base/services/coverage", "frameworks/base/services/core/xsd",
+              "frameworks/base/cmds/statsd/tools", "packages/modules/ExtServices",
+              "packages/services/AlternativeNetworkAccess", "libcore/metrictests",
+              "system/tools/xsdc/tests", "frameworks/base/tests/net",
+          ]
+          gone = 0
+          for d in dels:
+              shutil.rmtree(d, ignore_errors=True); gone += 1
+          for e in extra:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
