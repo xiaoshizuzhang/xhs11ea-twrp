@@ -150,6 +150,9 @@ jobs:
           echo "=== removing art-dex/py2/vts consumers ==="
           rm -rf $HOME/twrp/system/extras/simpleperf $HOME/twrp/test/vts $HOME/twrp/external/python/futures $HOME/twrp/frameworks/base/startop
           ls -d $HOME/twrp/system/extras/simpleperf $HOME/twrp/test/vts $HOME/twrp/external/python/futures $HOME/twrp/frameworks/base/startop 2>&1 || echo "dex/py2/vts consumers GONE"
+          echo "=== removing perf profiling consumers ==="
+          rm -rf $HOME/twrp/system/extras/perfprofd $HOME/twrp/external/perf_data_converter
+          ls -d $HOME/twrp/system/extras/perfprofd $HOME/twrp/external/perf_data_converter 2>&1 || echo "perf consumers GONE"
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
