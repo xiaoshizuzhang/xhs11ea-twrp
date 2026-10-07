@@ -173,6 +173,23 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED2_TOTAL", gone)
           EOF
+          echo "=== removing round-3 consumers (SystemUI/powermodel/libbpf/libbrillo/dalvik-dx) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra3 = [
+              "frameworks/base/packages/SystemUI", "frameworks/base/packages/WAPPushManager",
+              "frameworks/base/tools/powermodel", "frameworks/native/libs/cputimeinstate",
+              "frameworks/native/services/nativeperms", "dalvik/dx",
+              "bootable/recovery/updater_sample", "prebuilts/sdk/current/androidx",
+          ]
+          gone = 0
+          for e in extra3:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED3_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
