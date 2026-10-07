@@ -537,23 +537,32 @@ jobs:
           mkdir -p /home/runner/twrp/frameworks/base/media
           printf 'package updatablemediastubs;\npublic final class Stub {}\n' > /home/runner/twrp/frameworks/base/media/Stub.java
           printf 'java_library {\n    name: "updatable_media_stubs",\n    srcs: ["Stub.java"],\n}\n' > /home/runner/twrp/frameworks/base/media/Android.bp
-          echo "=== targeted scrub v4 (services.core/aidl/apexd-gen_bad_apexes/libcore-metalava) ==="
+          echo "=== dropping media stub again (old soong self-dep) ==="
+          rm -rf /home/runner/twrp/frameworks/base/media
+          echo "=== removing round-19 dirs (setupdesign/displayservice/bootctl) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra19 = [
+              "external/setupdesign", "frameworks/native/services/displayservice",
+              "system/extras/bootctl",
+          ]
+          gone = 0
+          for e in extra19:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED19_TOTAL", gone)
+          EOF
+          echo "=== targeted scrub v5 (apexd zipalign only) ==="
           python3 - <<'EOF'
           import re
-          jobs = [
-              ("/home/runner/twrp/frameworks/base/services/core/Android.bp", ["updatable_media_stubs"]),
-              ("/home/runner/twrp/system/tools/aidl/Android.bp", ["updatable_media_stubs"]),
-              ("/home/runner/twrp/system/apex/apexd/Android.bp", ["zipalign"]),
-              ("/home/runner/twrp/libcore/JavaLibrary.bp", ["metalava-manual"]),
-          ]
-          for p, names in jobs:
-              txt = open(p, encoding="utf-8", errors="ignore").read()
-              orig = txt
-              for n in names:
-                  txt = re.sub(r'":?' + re.escape(n) + r'"(?:,\s*)?', '', txt)
-                  txt = re.sub(r'\["?:?' + re.escape(n) + r'"?,?\s*\]', '[]', txt)
-              open(p, "w", encoding="utf-8").write(txt)
-              print("SCRUB4", p.rsplit("/", 1)[-1], "changed", len(orig) != len(txt), "left", sum(txt.count(n) for n in names))
+          p = "/home/runner/twrp/system/apex/apexd/Android.bp"
+          txt = open(p, encoding="utf-8", errors="ignore").read()
+          orig = txt
+          txt = re.sub(r'"?zipalign"?\s*(?:,\s*)?', '', txt)
+          open(p, "w", encoding="utf-8").write(txt)
+          print("APEXD_ZIPALIGN_CHANGED", len(orig) != len(txt), "left", txt.count("zipalign"))
           EOF
           echo "strip done"
 
