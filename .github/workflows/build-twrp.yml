@@ -481,30 +481,46 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED16_TOTAL", gone)
           EOF
-          echo "=== global scrub v3 (quoted, :prefixed, trailing comma, bare-token): dead test/module names ==="
+          echo "=== removing round-17 dirs (all modules still refs updatable_media_stubs / dead libs) ==="
           python3 - <<'EOF'
-          import os, re
+          import os, shutil
           root = "/home/runner/twrp"
-          names = ["junit", "android.test.base", "libbluetooth-types-header", "zipalign", "updatable_media_stubs"]
-          total = 0
-          for dp, dn, files in os.walk(root):
-              if dn and dn[0].startswith('.'): continue
-              for fn in files:
-                  if not fn.endswith('.bp'): continue
-                  p = os.path.join(dp, fn)
-                  txt = open(p, encoding="utf-8", errors="ignore").read()
-                  orig = txt
-                  for n in names:
-                      txt = re.sub(r'":?' + re.escape(n) + r'"(?:,\s*)?', '', txt)
-                      txt = re.sub(r'\["?:?' + re.escape(n) + r'"?,?\s*\]', '[]', txt)
-                  if txt != orig:
-                      total += len(orig) - len(txt)
-                      open(p, "w", encoding="utf-8").write(txt)
-          print("SCRUB_V3_CHARS", total)
-          p = root + "/hardware/libhardware/Android.bp"
-          t = open(p, encoding="utf-8", errors="ignore").read()
-          print("LIBHARDWARE_BT_GONE", "libbluetooth-types-header" not in t)
+          extra17 = [
+              "frameworks/base/cmds/media", "frameworks/base/packages/ExternalStorageProvider",
+              "frameworks/base/services/contentsuggestions", "frameworks/base/obex",
+              "frameworks/base/packages/CompanionDeviceManager", "frameworks/base/services/backup",
+              "frameworks/base/services/restrictions", "system/apex/apexd/sysprop",
+              "external/perfetto/test/cts", "external/turbine", "system/core/gatekeeperd",
+          ]
+          gone = 0
+          for e in extra17:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED17_TOTAL", gone)
           EOF
+          echo "=== targeted scrub: libhardware (bluetooth header) + nativewindow (grallocusage/graphics) ==="
+          python3 - <<'EOF'
+          import re
+          jobs = [
+              ("/home/runner/twrp/hardware/libhardware/Android.bp",
+               ["libbluetooth-types-header"]),
+              ("/home/runner/twrp/frameworks/native/libs/nativewindow/Android.bp",
+               ["libgrallocusage", "android.hardware.graphics.common@1.1"]),
+          ]
+          for p, names in jobs:
+              txt = open(p, encoding="utf-8", errors="ignore").read()
+              orig = txt
+              for n in names:
+                  txt = re.sub(r'":?' + re.escape(n) + r'"(?:,\s*)?', '', txt)
+                  txt = re.sub(r'\["?:?' + re.escape(n) + r'"?,?\s*\]', '[]', txt)
+              open(p, "w", encoding="utf-8").write(txt)
+              left = sum(txt.count(n) for n in names)
+              print("TARGET", p.rsplit("/", 1)[-1], "changed", len(orig) != len(txt), "left", left)
+          EOF
+          echo "=== residual check ==="
+          grep -rl "updatable_media_stubs" /home/runner/twrp --include="*.bp" 2>/dev/null || echo NO_MEDIA_STUB_REFS
+          grep -rl "libbluetooth-types-header" /home/runner/twrp --include="*.bp" 2>/dev/null || echo NO_BT_HEADER_REFS
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
