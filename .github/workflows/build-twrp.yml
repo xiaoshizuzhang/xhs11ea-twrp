@@ -432,12 +432,29 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED13_TOTAL", gone)
           EOF
-          echo "=== global scrub v2 (optional trailing comma): updatable_media_stubs / junit / androidx ==="
+          echo "=== injecting updatable_media_stubs stub (media tree purged) ==="
+          mkdir -p /home/runner/twrp/frameworks/base/media
+          printf 'java_library {\n    name: "updatable_media_stubs",\n    srcs: [],\n}\n' > /home/runner/twrp/frameworks/base/media/Android.bp
+          echo "=== removing round-14 dirs (grpc/fastdeploy/test-runner) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra14 = [
+              "external/grpc-grpc-java", "system/core/adb/fastdeploy",
+              "frameworks/base/test-runner",
+          ]
+          gone = 0
+          for e in extra14:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED14_TOTAL", gone)
+          EOF
+          echo "=== global scrub v2 (optional trailing comma): junit / androidx only (media stub now defined) ==="
           python3 - <<'EOF'
           import os, re
           root = "/home/runner/twrp"
           pats = [
-              r'"updatable_media_stubs"(?:,\s*)?',
               r'"junit"(?:,\s*)?',
               r'"androidx\.[^"]+"(?:,\s*)?',
           ]
