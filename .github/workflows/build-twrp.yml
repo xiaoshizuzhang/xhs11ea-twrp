@@ -81,7 +81,7 @@ jobs:
                   txt = open(p, encoding="utf-8", errors="ignore").read()
               except Exception:
                   continue
-              if "VtsHal" in txt or "hidl_defaults" in txt:
+              if any(k in txt for k in ("VtsHal", "hidl_defaults", "system_suspend_defaults", "vts.driver", "vts.profiler")):
                   os.remove(p)
                   removed += 1
           print("TOTAL_REMOVED", removed)
