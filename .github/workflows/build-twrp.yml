@@ -466,16 +466,26 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED15_TOTAL", gone)
           EOF
-          echo "=== global scrub v2 (optional trailing comma): junit / androidx / android.test.base / libbluetooth-types-header ==="
+          echo "=== dropping updatable_media_stubs stub (self-dep loop in old soong) ==="
+          rm -f /home/runner/twrp/frameworks/base/media/Android.bp
+          rmdir /home/runner/twrp/frameworks/base/media 2>/dev/null || true
+          echo "=== removing round-16 dirs (Car/tensorflow) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra16 = ["packages/apps/Car", "external/tensorflow"]
+          gone = 0
+          for e in extra16:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED16_TOTAL", gone)
+          EOF
+          echo "=== global scrub v3 (quoted, :prefixed, trailing comma, bare-token): dead test/module names ==="
           python3 - <<'EOF'
           import os, re
           root = "/home/runner/twrp"
-          pats = [
-              r'"junit"(?:,\s*)?',
-              r'"androidx\.[^"]+"(?:,\s*)?',
-              r'"android\.test\.base"(?:,\s*)?',
-              r'"libbluetooth-types-header"(?:,\s*)?',
-          ]
+          names = ["junit", "android.test.base", "libbluetooth-types-header", "zipalign", "updatable_media_stubs"]
           total = 0
           for dp, dn, files in os.walk(root):
               if dn and dn[0].startswith('.'): continue
@@ -483,13 +493,17 @@ jobs:
                   if not fn.endswith('.bp'): continue
                   p = os.path.join(dp, fn)
                   txt = open(p, encoding="utf-8", errors="ignore").read()
-                  n0 = total
-                  for pat in pats:
-                      txt, n = re.subn(pat, '', txt)
-                      total += n
-                  if total != n0:
+                  orig = txt
+                  for n in names:
+                      txt = re.sub(r'":?' + re.escape(n) + r'"(?:,\s*)?', '', txt)
+                      txt = re.sub(r'\["?:?' + re.escape(n) + r'"?,?\s*\]', '[]', txt)
+                  if txt != orig:
+                      total += len(orig) - len(txt)
                       open(p, "w", encoding="utf-8").write(txt)
-          print("GLOBAL_SCRUBBED_V2", total)
+          print("SCRUB_V3_CHARS", total)
+          p = root + "/hardware/libhardware/Android.bp"
+          t = open(p, encoding="utf-8", errors="ignore").read()
+          print("LIBHARDWARE_BT_GONE", "libbluetooth-types-header" not in t)
           EOF
           echo "strip done"
 
