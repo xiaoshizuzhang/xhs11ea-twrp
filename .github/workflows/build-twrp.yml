@@ -206,6 +206,35 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED4_TOTAL", gone)
           EOF
+          echo "=== removing round-5 consumers (vr/memtrack/dump-coverage/core-xsd/SettingsLib/headers/chips) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra5 = [
+              "frameworks/native/services/vr", "system/core/libmemtrack",
+              "frameworks/base/tools/dump-coverage", "frameworks/base/core/xsd",
+              "frameworks/base/packages/SettingsLib", "frameworks/native/headers",
+              "frameworks/opt/chips",
+          ]
+          gone = 0
+          for e in extra5:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED5_TOTAL", gone)
+          EOF
+          echo "=== scrubbing okhttp/apache-xml refs from libcore/JavaLibrary.bp (libs not in minimal manifest) ==="
+          python3 - <<'EOF'
+          import re
+          p = "/home/runner/twrp/libcore/JavaLibrary.bp"
+          txt = open(p, encoding="utf-8", errors="ignore").read()
+          n1 = len(re.findall(r'"okhttp"', txt))
+          n2 = len(re.findall(r'"apache-xml"', txt))
+          txt = re.sub(r'"okhttp",\s*', '', txt)
+          txt = re.sub(r'"apache-xml",\s*', '', txt)
+          open(p, "w", encoding="utf-8").write(txt)
+          print("SCRUBBED okhttp", n1, "apache-xml", n2)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
