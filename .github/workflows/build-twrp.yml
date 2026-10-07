@@ -32,25 +32,25 @@ jobs:
           git config user.name "ci-builder"
           git config user.email "ci@localhost"
           python3 - <<'EOF'
-          p = "default.xml"
-          s = open(p, encoding="utf-8").read()
+          import glob
           targets = ["platform/hardware/interfaces",
                      "platform/frameworks/hardware/interfaces",
                      "platform/system/hardware/interfaces"]
-          out = []
-          removed = 0
-          for ln in s.splitlines():
-              skip = False
-              if ("<project" in ln or "<remove-project" in ln):
-                  for t in targets:
-                      if t in ln:
-                          skip = True
-                          removed += 1
-                          break
-              if not skip:
+          total = 0
+          for p in glob.glob("*.xml") + glob.glob("**/*.xml", recursive=True):
+              s = open(p, encoding="utf-8").read()
+              out = []
+              removed = 0
+              for ln in s.splitlines():
+                  if ("<project" in ln or "<remove-project" in ln) and any(t in ln for t in targets):
+                      removed += 1
+                      continue
                   out.append(ln)
-          open(p, "w", encoding="utf-8").write("\n".join(out) + "\n")
-          print("manifest lines removed:", removed)
+              if removed:
+                  open(p, "w", encoding="utf-8").write("\n".join(out) + "\n")
+                  print("edited", p, "removed", removed)
+                  total += removed
+          print("TOTAL_REMOVED_LINES", total)
           EOF
           git add -A
           git commit -m "drop hw interface repos (vts/hidl soong noise)"
