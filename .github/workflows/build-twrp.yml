@@ -386,17 +386,18 @@ jobs:
               r'"vendor\.omni\.biometrics\.fingerprint\.inscreen-V1\.0-java",\s*',
           ]
           total = 0
-          for dp, dn, fn in os.walk(root):
+          for dp, dn, files in os.walk(root):
               if dn and dn[0].startswith('.'): continue
-              if not fn.endswith('.bp'): continue
-              p = os.path.join(dp, fn)
-              txt = open(p, encoding="utf-8", errors="ignore").read()
-              n0 = total
-              for pat in pats:
-                  txt, n = re.subn(pat, '', txt)
-                  total += n
-              if total != n0:
-                  open(p, "w", encoding="utf-8").write(txt)
+              for fn in files:
+                  if not fn.endswith('.bp'): continue
+                  p = os.path.join(dp, fn)
+                  txt = open(p, encoding="utf-8", errors="ignore").read()
+                  n0 = total
+                  for pat in pats:
+                      txt, n = re.subn(pat, '', txt)
+                      total += n
+                  if total != n0:
+                      open(p, "w", encoding="utf-8").write(txt)
           print("GLOBAL_SCRUBBED", total)
           EOF
           echo "strip done"
