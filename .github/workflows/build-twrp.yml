@@ -293,6 +293,38 @@ jobs:
           open(p, "w", encoding="utf-8").write(txt)
           print("SERVICES_SCRUBBED", total)
           EOF
+          echo "=== removing round-9 consumers (usbd/gsid/setupcompat) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra9 = ["system/core/usbd", "system/gsid", "external/setupcompat"]
+          gone = 0
+          for e in extra9:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED9_TOTAL", gone)
+          EOF
+          echo "=== scrubbing dead refs in round-9 bp files ==="
+          python3 - <<'EOF'
+          import re
+          jobs = [
+              ("/home/runner/twrp/libcore/JavaLibrary.bp", ["junit"]),
+              ("/home/runner/twrp/frameworks/base/Android.bp", ["metalava-manual"]),
+              ("/home/runner/twrp/hardware/libhardware/Android.bp", ["libbluetooth-types-header"]),
+              ("/home/runner/twrp/system/apex/apexd/Android.bp", ["zipalign"]),
+              ("/home/runner/twrp/system/timezone/distro/core/Android.bp", ["junit"]),
+          ]
+          for p, pats in jobs:
+              txt = open(p, encoding="utf-8", errors="ignore").read()
+              total = 0
+              for pat in pats:
+                  n = len(re.findall(re.escape(pat), txt))
+                  txt = re.sub(re.escape(pat) + r',\s*', '', txt)
+                  total += n
+              open(p, "w", encoding="utf-8").write(txt)
+              print("SCRUB", p.rsplit("/", 1)[-1], total)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
