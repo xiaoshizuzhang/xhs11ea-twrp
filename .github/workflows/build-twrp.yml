@@ -106,6 +106,9 @@ jobs:
               print("RMTREE", t)
           print("TREE_REMOVED", len(targets))
           EOF
+          echo "=== removing hidl test + nxp vendor trees ==="
+          rm -rf $HOME/twrp/system/tools/hidl/test $HOME/twrp/hardware/nxp
+          ls -d $HOME/twrp/system/tools/hidl/test $HOME/twrp/hardware/nxp 2>&1 || echo "hidl-test/nxp GONE"
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
