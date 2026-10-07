@@ -86,6 +86,26 @@ jobs:
                   removed += 1
           print("TOTAL_REMOVED", removed)
           EOF
+          echo "=== removing hidl_interface dirs under libhidl/transport (soong auto-generates vts variants) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          base = "/home/runner/twrp/system/libhidl/transport"
+          targets = []
+          for dirpath, dirnames, filenames in os.walk(base):
+              if "Android.bp" not in filenames:
+                  continue
+              p = os.path.join(dirpath, "Android.bp")
+              try:
+                  txt = open(p, encoding="utf-8", errors="ignore").read()
+              except Exception:
+                  continue
+              if "hidl_interface" in txt and not dirpath.endswith("/base"):
+                  targets.append(dirpath)
+          for t in targets:
+              shutil.rmtree(t)
+              print("RMTREE", t)
+          print("TREE_REMOVED", len(targets))
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
