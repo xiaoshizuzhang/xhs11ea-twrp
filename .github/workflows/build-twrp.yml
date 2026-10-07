@@ -144,6 +144,9 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED_TOTAL", gone)
           EOF
+          echo "=== removing art consumers (art tree gone => art_cc_* types undefined) ==="
+          rm -rf $HOME/twrp/external/vixl $HOME/twrp/frameworks/native/cmds/installd/art_helper
+          ls -d $HOME/twrp/external/vixl $HOME/twrp/frameworks/native/cmds/installd/art_helper 2>&1 || echo "vixl/art_helper GONE"
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
