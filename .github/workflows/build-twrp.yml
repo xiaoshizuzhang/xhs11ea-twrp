@@ -153,6 +153,26 @@ jobs:
           echo "=== removing perf profiling consumers ==="
           rm -rf $HOME/twrp/system/extras/perfprofd $HOME/twrp/external/perf_data_converter
           ls -d $HOME/twrp/system/extras/perfprofd $HOME/twrp/external/perf_data_converter 2>&1 || echo "perf consumers GONE"
+          echo "=== removing remaining prebuilt-test/consumer trees ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra2 = [
+              "dalvik/tools", "frameworks/base/packages/services/PacProcessor",
+              "frameworks/native/services/bufferhub", "development/tools",
+              "frameworks/native/libs/vr", "tools/test", "hardware/libhardware/modules",
+              "external/icu/android_icu4j", "prebuilts/misc/common/android-support-test",
+              "system/apex/apexd/apexd_testdata", "frameworks/native/services/surfaceflinger",
+              "system/update_engine", "packages/apps/PackageInstaller",
+              "frameworks/base/cmds/uiautomator", "prebuilts/misc/common/jacoco",
+          ]
+          gone = 0
+          for e in extra2:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED2_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
