@@ -190,6 +190,22 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED3_TOTAL", gone)
           EOF
+          echo "=== removing round-4 consumers (nn/setupwizard/apifinder/vintf-xsd/carui/midi/healthd/rappor) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra4 = [
+              "frameworks/ml", "frameworks/opt/setupwizard", "tools/apifinder",
+              "system/libvintf/xsd", "frameworks/base/packages/CarSystemUI",
+              "frameworks/base/media/native/midi", "system/core/healthd", "external/rappor",
+          ]
+          gone = 0
+          for e in extra4:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED4_TOTAL", gone)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
