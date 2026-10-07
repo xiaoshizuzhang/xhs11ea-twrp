@@ -65,10 +65,12 @@ jobs:
 
       - name: Strip VTS/defaults test modules (never built for recovery)
         run: |
+          echo "=== removing hw interface trees entirely (recovery has no HAL deps) ==="
+          rm -rf $HOME/twrp/hardware/interfaces $HOME/twrp/frameworks/hardware/interfaces $HOME/twrp/system/hardware/interfaces
+          ls -d $HOME/twrp/hardware/interfaces 2>&1 || echo "hardware/interfaces GONE"
           python3 - <<'EOF'
           import os
           removed = 0
-          skipped = 0
           for dirpath, dirnames, filenames in os.walk("/home/runner/twrp"):
               if "/out" in dirpath or "/.repo" in dirpath or "/.git" in dirpath:
                   continue
@@ -82,11 +84,8 @@ jobs:
               if "VtsHal" in txt or "hidl_defaults" in txt:
                   os.remove(p)
                   removed += 1
-                  print("REMOVED", p)
           print("TOTAL_REMOVED", removed)
           EOF
-          echo "=== sanity: known offenders ==="
-          ls -la /home/runner/twrp/hardware/interfaces/audio/5.0/Android.bp /home/runner/twrp/system/libhidl/transport/memory/1.0/Android.bp 2>&1 | head -6
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
