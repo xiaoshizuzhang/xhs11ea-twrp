@@ -325,6 +325,38 @@ jobs:
               open(p, "w", encoding="utf-8").write(txt)
               print("SCRUB", p.rsplit("/", 1)[-1], total)
           EOF
+          echo "=== removing round-10 dirs (base/media, sdkparcelables, material-design-x) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra10 = [
+              "frameworks/base/media", "frameworks/base/tools/sdkparcelables",
+              "prebuilts/sdk/current/extras/material-design-x",
+          ]
+          gone = 0
+          for e in extra10:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED10_TOTAL", gone)
+          EOF
+          echo "=== scrubbing libandroid_runtime dead deps in core/jni ==="
+          python3 - <<'EOF'
+          import re
+          p = "/home/runner/twrp/frameworks/base/core/jni/Android.bp"
+          txt = open(p, encoding="utf-8", errors="ignore").read()
+          dead = ["libgif","libgrallocusage","libbpf_android","libmemtrack","libcamera_client",
+                  "libhardware_legacy","libmedia","libmedia_helper","libmediametrics",
+                  "libaudioclient","libaudiopolicy","libjpeg","libharfbuzz_ng","libpdfium",
+                  "libimg_utils","libsoundtrigger","libminikin"]
+          total = 0
+          for d in dead:
+              n = len(re.findall(re.escape(d), txt))
+              txt = re.sub(re.escape(d) + r',\s*', '', txt)
+              total += n
+          open(p, "w", encoding="utf-8").write(txt)
+          print("CORE_JNI_SCRUBBED", total)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
