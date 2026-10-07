@@ -414,6 +414,48 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED12_TOTAL", gone)
           EOF
+          echo "=== removing round-13 dirs (services/apps/tools referencing dead test libs) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra13 = [
+              "frameworks/base/packages/StatementService", "frameworks/base/services/midi",
+              "frameworks/base/services/appprediction", "frameworks/base/cmds/bmgr",
+              "frameworks/base/packages/OsuLogin", "frameworks/base/test-base",
+              "frameworks/base/services/companion", "tools/apkzlib",
+              "frameworks/base/libs/usb", "system/timezone/distro/installer",
+          ]
+          gone = 0
+          for e in extra13:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED13_TOTAL", gone)
+          EOF
+          echo "=== global scrub v2 (optional trailing comma): updatable_media_stubs / junit / androidx ==="
+          python3 - <<'EOF'
+          import os, re
+          root = "/home/runner/twrp"
+          pats = [
+              r'"updatable_media_stubs"(?:,\s*)?',
+              r'"junit"(?:,\s*)?',
+              r'"androidx\.[^"]+"(?:,\s*)?',
+          ]
+          total = 0
+          for dp, dn, files in os.walk(root):
+              if dn and dn[0].startswith('.'): continue
+              for fn in files:
+                  if not fn.endswith('.bp'): continue
+                  p = os.path.join(dp, fn)
+                  txt = open(p, encoding="utf-8", errors="ignore").read()
+                  n0 = total
+                  for pat in pats:
+                      txt, n = re.subn(pat, '', txt)
+                      total += n
+                  if total != n0:
+                      open(p, "w", encoding="utf-8").write(txt)
+          print("GLOBAL_SCRUBBED_V2", total)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
