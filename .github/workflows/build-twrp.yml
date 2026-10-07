@@ -450,13 +450,31 @@ jobs:
                   shutil.rmtree(p, ignore_errors=True); gone += 1
           print("PURGED14_TOTAL", gone)
           EOF
-          echo "=== global scrub v2 (optional trailing comma): junit / androidx only (media stub now defined) ==="
+          echo "=== removing round-15 dirs (SettingsProvider/NetworkStack/startop/apexer/vulkan/vendor-qcom) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra15 = [
+              "frameworks/base/packages/SettingsProvider", "packages/modules/NetworkStack",
+              "frameworks/base/services/startop", "system/apex/apexer",
+              "frameworks/native/vulkan", "vendor/qcom",
+          ]
+          gone = 0
+          for e in extra15:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED15_TOTAL", gone)
+          EOF
+          echo "=== global scrub v2 (optional trailing comma): junit / androidx / android.test.base / libbluetooth-types-header ==="
           python3 - <<'EOF'
           import os, re
           root = "/home/runner/twrp"
           pats = [
               r'"junit"(?:,\s*)?',
               r'"androidx\.[^"]+"(?:,\s*)?',
+              r'"android\.test\.base"(?:,\s*)?',
+              r'"libbluetooth-types-header"(?:,\s*)?',
           ]
           total = 0
           for dp, dn, files in os.walk(root):
