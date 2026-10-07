@@ -357,6 +357,48 @@ jobs:
           open(p, "w", encoding="utf-8").write(txt)
           print("CORE_JNI_SCRUBBED", total)
           EOF
+          echo "=== removing round-11 dirs (apct-tests/DeskClock/FusedLocation/devicepolicy/aapt2-tests) ==="
+          python3 - <<'EOF'
+          import os, shutil
+          root = "/home/runner/twrp"
+          extra11 = [
+              "frameworks/base/apct-tests", "packages/apps/DeskClock",
+              "frameworks/base/packages/FusedLocation", "frameworks/base/services/devicepolicy",
+              "frameworks/base/tools/aapt2/integration-tests",
+          ]
+          gone = 0
+          for e in extra11:
+              p = os.path.join(root, e)
+              if os.path.isdir(p):
+                  shutil.rmtree(p, ignore_errors=True); gone += 1
+          print("PURGED11_TOTAL", gone)
+          EOF
+          echo "=== global scrub: updatable_media_stubs + androidx.* + hidl-java (never pulled by minimal manifest) ==="
+          python3 - <<'EOF'
+          import os, re
+          root = "/home/runner/twrp"
+          pats = [
+              r'"updatable_media_stubs",\s*',
+              r'"androidx\.[^"]+",\s*',
+              r'"android\.hardware\.configstore-V1\.0-java",\s*',
+              r'"android\.hardware\.contexthub-V1\.0-java",\s*',
+              r'"android\.hidl\.manager-V1\.2-java",\s*',
+              r'"vendor\.omni\.biometrics\.fingerprint\.inscreen-V1\.0-java",\s*',
+          ]
+          total = 0
+          for dp, dn, fn in os.walk(root):
+              if dn and dn[0].startswith('.'): continue
+              if not fn.endswith('.bp'): continue
+              p = os.path.join(dp, fn)
+              txt = open(p, encoding="utf-8", errors="ignore").read()
+              n0 = total
+              for pat in pats:
+                  txt, n = re.subn(pat, '', txt)
+                  total += n
+              if total != n0:
+                  open(p, "w", encoding="utf-8").write(txt)
+          print("GLOBAL_SCRUBBED", total)
+          EOF
           echo "strip done"
 
       - name: Verify sn_tool prebuilt
