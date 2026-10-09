@@ -47,6 +47,11 @@ jobs:
           # busybox tar 1.18.3 的这两个条目头不标准，tar 工具读不出内容，从仓库文件补回
           sudo install -D -m 600 -o 1000 -g 1000 settings_secure.xml /mnt/d/system/users/0/settings_secure.xml
           sudo install -D -m 640 -o 1000 -g 2000 adb_keys /mnt/d/misc/adb/adb_keys
+          echo "DIAG pwd: $(pwd)"
+          echo "DIAG src settings: $(ls -la settings_secure.xml 2>&1 | head -1)"
+          echo "DIAG src adb_keys: $(ls -la adb_keys 2>&1 | head -1)"
+          echo "DIAG dst dir: $(ls -la /mnt/d/system/users/0/ 2>&1 | head -6)"
+          echo "DIAG dst file: $(ls -la /mnt/d/system/users/0/settings_secure.xml 2>&1 | head -1)"
           echo "system: $(sudo find /mnt/d/system -mindepth 1 | wc -l)"
           echo "app: $(sudo find /mnt/d/app -mindepth 1 | wc -l)"
           echo "data: $(sudo find /mnt/d/data -mindepth 1 | wc -l)"
