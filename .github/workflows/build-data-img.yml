@@ -56,8 +56,9 @@ jobs:
           echo "app: $(sudo find /mnt/d/app -mindepth 1 | wc -l)"
           echo "data: $(sudo find /mnt/d/data -mindepth 1 | wc -l)"
           echo "misc: $(sudo find /mnt/d/misc -mindepth 1 | wc -l)"
-          echo "settings_secure exists: $(test -f /mnt/d/system/users/0/settings_secure.xml && echo YES || echo NO)"
-          echo "adb_keys exists: $(test -f /mnt/d/misc/adb/adb_keys && echo YES || echo NO)"
+          echo "settings_secure exists: $(sudo test -f /mnt/d/system/users/0/settings_secure.xml && echo YES || echo NO)"
+          echo "adb_keys exists: $(sudo test -f /mnt/d/misc/adb/adb_keys && echo YES || echo NO)"
+          echo "FINAL ls: $(sudo ls -la /mnt/d/system/users/0/settings_secure.xml /mnt/d/misc/adb/adb_keys 2>&1)"
           sudo umount /mnt/d
 
       - name: Compress & upload artifact
