@@ -16,11 +16,12 @@ jobs:
       - name: Install f2fs-tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y f2fs-tools
+          sudo apt-get install -y f2fs-tools android-sdk-libsparse-utils
           # runner 内核可能未加载 f2fs 模块，确保支持
           sudo modprobe f2fs 2>/dev/null || sudo apt-get install -y linux-modules-extra-$(uname -r)
           sudo modprobe f2fs 2>/dev/null || echo "WARN: f2fs module unavailable"
           grep f2fs /proc/filesystems
+          which img2simg simg2img
 
       - name: Create & format f2fs image
         run: |
@@ -61,13 +62,18 @@ jobs:
           echo "FINAL ls: $(sudo ls -la /mnt/d/system/users/0/settings_secure.xml /mnt/d/misc/adb/adb_keys 2>&1)"
           sudo umount /mnt/d
 
-      - name: Compress & upload artifact
+      - name: Convert to sparse & upload artifact
         run: |
-          gzip -9 data.img
-          ls -la data.img.gz
+          # 转 Android sparse 格式：跳过全零块，镜像体积≈实际数据(~130MB)，免解压直接刷
+          img2simg data.img data_sparse.img
+          ls -la data_sparse.img
+          # 回读验证：sparse -> 普通镜像，应恢复为完整 1GB 镜像
+          simg2img data_sparse.img data_back.img
+          ls -la data_back.img
+          echo "sparse magic: $(xxd -l 4 -p data_sparse.img) (expect 3aff26ed)"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: data-img
-          path: data.img.gz
+          name: data-sparse-img
+          path: data_sparse.img
           retention-days: 7
