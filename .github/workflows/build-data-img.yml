@@ -1,0 +1,53 @@
+name: Build f2fs data.img
+on:
+  workflow_dispatch:
+    inputs:
+      size_mb:
+        description: '镜像大小 MB（实际数据约130MB，建议1024起）'
+        required: false
+        default: '1024'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install f2fs-tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y f2fs-tools
+
+      - name: Create & format f2fs image
+        run: |
+          SIZE=${{ github.event.inputs.size_mb }}
+          dd if=/dev/zero of=data.img bs=1M count=$SIZE status=progress
+          mkfs.f2fs -f data.img
+
+      - name: Mount & extract tar (preserve owner)
+        run: |
+          sudo mkdir -p /mnt/d
+          sudo mount -o loop data.img /mnt/d
+          sudo tar -xzf data_clean.tar.gz -C /mnt/d
+          echo "entries_before_clean: $(sudo find /mnt/d -mindepth 1 | wc -l)"
+          # 跨设备/同设备恢复都不带硬件绑定密钥目录
+          sudo rm -rf /mnt/d/unencrypted /mnt/d/misc/keystore /mnt/d/misc/gatekeeper
+          echo "entries_after_clean: $(sudo find /mnt/d -mindepth 1 | wc -l)"
+          echo "system: $(sudo find /mnt/d/system -mindepth 1 | wc -l)"
+          echo "app: $(sudo find /mnt/d/app -mindepth 1 | wc -l)"
+          echo "data: $(sudo find /mnt/d/data -mindepth 1 | wc -l)"
+          echo "misc: $(sudo find /mnt/d/misc -mindepth 1 | wc -l)"
+          echo "settings_secure exists: $(test -f /mnt/d/system/users/0/settings_secure.xml && echo YES || echo NO)"
+          echo "adb_keys exists: $(test -f /mnt/d/misc/adb/adb_keys && echo YES || echo NO)"
+          sudo umount /mnt/d
+
+      - name: Compress & upload artifact
+        run: |
+          gzip -9 data.img
+          ls -la data.img.gz
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: data-img
+          path: data.img.gz
+          retention-days: 7
