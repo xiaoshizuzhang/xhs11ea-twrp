@@ -28,30 +28,18 @@ jobs:
           dd if=/dev/zero of=data.img bs=1M count=$SIZE status=progress
           mkfs.f2fs -f data.img
 
-      - name: Sanitize tar (drop unreadable socket entries, keep owner)
-        run: |
-          python3 - <<'EOF'
-          import tarfile
-          src = tarfile.open('data_clean.tar.gz', 'r:gz')
-          dst = tarfile.open('data_clean_clean.tar.gz', 'w:gz')
-          skip = 0
-          for m in src.getmembers():
-              if m.isfile() or m.isdir() or m.issym() or m.islnk():
-                  f = src.extractfile(m) if (m.isfile() or m.islnk()) else None
-                  dst.addfile(m, f)
-              else:
-                  skip += 1
-                  print('skip:', m.name, 'type:', m.type)
-          dst.close()
-          src.close()
-          print('skipped_entries:', skip)
-          EOF
-
-      - name: Mount & extract tar (preserve owner)
+      - name: Mount & extract tar (python tarfile, keep owner)
         run: |
           sudo mkdir -p /mnt/d
           sudo mount -o loop data.img /mnt/d
-          sudo tar -xzf data_clean_clean.tar.gz -C /mnt/d
+          # python tarfile 能完整读 busybox tar（937 条目）并保留 owner/mode
+          sudo python3 - <<'EOF'
+          import tarfile
+          src = tarfile.open('data_clean.tar.gz', 'r:gz')
+          src.extractall('/mnt/d')
+          src.close()
+          print('extractall done')
+          EOF
           echo "entries_before_clean: $(sudo find /mnt/d -mindepth 1 | wc -l)"
           # 跨设备/同设备恢复都不带硬件绑定密钥目录
           sudo rm -rf /mnt/d/unencrypted /mnt/d/misc/keystore /mnt/d/misc/gatekeeper
