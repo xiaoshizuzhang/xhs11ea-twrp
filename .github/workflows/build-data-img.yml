@@ -17,6 +17,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y f2fs-tools
+          # runner 内核可能未加载 f2fs 模块，确保支持
+          sudo modprobe f2fs 2>/dev/null || sudo apt-get install -y linux-modules-extra-$(uname -r)
+          sudo modprobe f2fs 2>/dev/null || echo "WARN: f2fs module unavailable"
+          grep f2fs /proc/filesystems
 
       - name: Create & format f2fs image
         run: |
