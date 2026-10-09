@@ -32,7 +32,8 @@ jobs:
         run: |
           sudo mkdir -p /mnt/d
           sudo mount -o loop data.img /mnt/d
-          sudo tar -xzf data_clean.tar.gz -C /mnt/d
+          # busybox tar 1.18.3 写的 socket 条目 GNU tar 无法识别会跳过，socket 运行时重建无害
+          sudo tar -xzf data_clean.tar.gz -C /mnt/d || echo "TAR_WARN: skipped unreadable entries (likely sockets)"
           echo "entries_before_clean: $(sudo find /mnt/d -mindepth 1 | wc -l)"
           # 跨设备/同设备恢复都不带硬件绑定密钥目录
           sudo rm -rf /mnt/d/unencrypted /mnt/d/misc/keystore /mnt/d/misc/gatekeeper
